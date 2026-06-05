@@ -1,0 +1,24 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Python virtual environments
+venv/
+.venv/
+env/
+venv_sdp/
+
+# IDEs
+.vscode/
+.idea/
+.DS_Store
+
+# Datasets
+datasets/
+
+# Local results and logs
+logs/
+results/verification_results.json
+results/verification_plot.png
+results/physics_bounds.json

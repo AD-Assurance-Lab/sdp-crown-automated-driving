@@ -146,3 +146,27 @@ class CIFAR10_ConvLarge(nn.Module):
         x = torch.relu(self.fc2(x))
         x = self.fc3(x)
         return x
+
+class MicroPilotNet(nn.Module):
+    def __init__(self):
+        super(MicroPilotNet, self).__init__()
+        # Input: 3 channels (RGB), 37 height, 117 width
+        self.conv_layers = nn.Sequential(
+            nn.Conv2d(3, 24, 5, stride=2), nn.ReLU(),
+            nn.Conv2d(24, 36, 5, stride=2), nn.ReLU(),
+            nn.Conv2d(36, 48, 5, stride=2), nn.ReLU(),
+            nn.Conv2d(48, 64, 3, padding=1), nn.ReLU(),
+            nn.Conv2d(64, 64, 3, padding=1), nn.ReLU()
+        )
+        # Flattened size: 64 channels * 2 height * 12 width = 1536
+        self.linear_layers = nn.Sequential(
+            nn.Linear(1536, 100), nn.ReLU(),
+            nn.Linear(100, 50), nn.ReLU(),
+            nn.Linear(50, 10), nn.ReLU(),
+            nn.Linear(10, 1) # Single regression output
+        )
+
+    def forward(self, x):
+        x = self.conv_layers(x)
+        x = x.view(x.size(0), -1)
+        return self.linear_layers(x)
