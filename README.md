@@ -14,15 +14,17 @@ Here is a step-by-step guide to running the automated driving verification pipel
 The pipeline relies on PyTorch, auto_LiRPA, OpenCV, and Pandas. You can run all scripts using the pre-configured virtual environment:
 ```bash
 # From the repository root (sdp-crown-automated-driving)
-../nn_verification/venv_sdp/bin/python3 <script_name>.py [arguments]
+./venv_sdp/bin/python <script_name>.py [arguments]
 ```
+
+**VS Code Users:** You can also run these scripts by clicking the **"Play"** button in the top right corner of the editor. Each script contains a **CONTROL PANEL** block at the top of the file where you can modify default parameters (like weather condition, number of frames, or device) without using the command line.
 
 ### Step 2: Characterize Adverse Weather (Generate $\epsilon$ Bounds)
 Run the standalone calibration script to calculate physical contrast drop and brightness bias bounds from the **ACDC dataset**.
 
 You can run this on a single drive split sequence to test a specific image grouping:
 ```bash
-../nn_verification/venv_sdp/bin/python3 tools/extract_physics_bounds.py \
+./venv_sdp/bin/python tools/extract_physics_bounds.py \
     --condition rain \
     --sequence GOPR0402 \
     --max_images 5
@@ -41,11 +43,11 @@ You can run this on a single drive split sequence to test a specific image group
 ### Step 3: Run CROWN Steering Verification
 Verify the pre-trained `MicroPilotNet` steering network on the Udacity dataset using the derived bounds.
 
-*Because dense matrix bounds tracking requires significant memory, we provide a `--device cpu` flag to run verification on host memory and avoid GPU Out-Of-Memory (OOM) errors.*
+*Because dense matrix bounds tracking requires significant memory, we recommend using the `--device cpu` flag (or setting it in the script's CONTROL PANEL) to run verification on host memory and avoid GPU Out-Of-Memory (OOM) errors.*
 
 #### Test A: Using Calibration Bounds (Sequence specific)
 ```bash
-../nn_verification/venv_sdp/bin/python3 verify_steering.py \
+./venv_sdp/bin/python verify_steering.py \
     --weather rain \
     --bounds_file results/physics_bounds.json \
     --num_frames 5 \
@@ -55,7 +57,7 @@ Verify the pre-trained `MicroPilotNet` steering network on the Udacity dataset u
 #### Test B: Using Paper-Calibrated Bounds (Recommended)
 Verify safety under the exact bounds reported in the study (which use tighter margins for global stability):
 ```bash
-../nn_verification/venv_sdp/bin/python3 verify_steering.py \
+./venv_sdp/bin/python verify_steering.py \
     --weather rain \
     --eps_c_min -0.0279 \
     --eps_c_max 0.0 \
@@ -83,7 +85,7 @@ Verify safety under the exact bounds reported in the study (which use tighter ma
 ### Step 4: Plot and Visualize Results
 Generate a professional graph plotting nominal steering, the safety corridor, CROWN worst-case steering bounds, and frame status:
 ```bash
-../nn_verification/venv_sdp/bin/python3 tools/plot_verification.py
+./venv_sdp/bin/python tools/plot_verification.py
 ```
 *   **Output:** Creates a high-resolution chart at `results/verification_plot.png`.
 
@@ -114,8 +116,8 @@ To run baseline classification verification (L2-norm radius perturbations) to re
 ```
 Or execute individual models:
 ```bash
-../nn_verification/venv_sdp/bin/python3 sdp_crown.py --model mnist_mlp --radius 1.0
-../nn_verification/venv_sdp/bin/python3 sdp_crown.py --model cifar10_cnn_a --radius 24/255
+./venv_sdp/bin/python sdp_crown.py --model mnist_mlp --radius 1.0
+./venv_sdp/bin/python sdp_crown.py --model cifar10_cnn_a --radius 24/255
 ```
 
 ---

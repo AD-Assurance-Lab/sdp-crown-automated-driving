@@ -4,42 +4,58 @@ import json
 import argparse
 import numpy as np
 
+# ==============================================================================
+# CONTROL PANEL
+# Modify these values to configure the default behavior when running the script
+# directly (e.g. by pressing the "Play" button in VS Code).
+# ==============================================================================
+CONFIG = {
+    "condition": "rain",                   # Options: "fog", "night", "snow", "rain"
+    "split": "val",                       # Options: "train", "val", "test"
+    "sequence": "all",                    # Folder name (e.g., "GOPR0476") or "all"
+    "dataset_dir": "datasets/ACDC",       # Path to ACDC dataset root
+    "output_json": "results/physics_bounds.json", # Output JSON path
+    "max_images": None                    # None for all images, or an integer limit
+}
+# ==============================================================================
+
 def parse_args():
     parser = argparse.ArgumentParser(description="Standalone ACDC Physical Threat Characterization")
     parser.add_argument(
         "--condition",
         choices=["fog", "night", "snow", "rain"],
-        default="fog",
+        default=CONFIG["condition"],
         help="Weather condition to characterize"
     )
     parser.add_argument(
         "--split",
         choices=["train", "val", "test"],
-        default="val",
+        default=CONFIG["split"],
         help="ACDC dataset split"
     )
     parser.add_argument(
         "--sequence",
-        default="all",
+        default=CONFIG["sequence"],
         help="Specific sequence folder name (e.g., GOPR0476) or 'all' to aggregate all folders in the split"
     )
     parser.add_argument(
         "--dataset_dir",
-        default="datasets/ACDC",
+        default=CONFIG["dataset_dir"],
         help="Path to the ACDC dataset root"
     )
     parser.add_argument(
         "--output_json",
-        default="results/physics_bounds.json",
+        default=CONFIG["output_json"],
         help="Path to save the generated bounds as a JSON file"
     )
     parser.add_argument(
         "--max_images",
         type=int,
-        default=None,
+        default=CONFIG["max_images"],
         help="Maximum number of image pairs to process (useful for quick checks)"
     )
     return parser.parse_args()
+
 
 def extract_bounds(condition, split, sequence, dataset_dir, max_images=None):
     dataset_dir = os.path.abspath(os.path.expanduser(dataset_dir))

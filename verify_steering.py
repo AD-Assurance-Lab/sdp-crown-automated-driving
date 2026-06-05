@@ -11,74 +11,103 @@ from semantic_layers import SemanticVerifiedNetwork
 from auto_LiRPA import BoundedModule, BoundedTensor
 from auto_LiRPA.perturbations import PerturbationLpNorm
 
+# ==============================================================================
+# CONTROL PANEL
+# Modify these values to configure the default behavior when running the script
+# directly (e.g. by pressing the "Play" button in VS Code).
+# ==============================================================================
+CONFIG = {
+    "weather": "rain",                     # Options: "fog", "night", "snow", "rain"
+    "num_frames": 10,                      # Number of continuous frames to verify
+    "safe_deviation": 0.1,                 # Maximum allowed deviation (radians)
+    "bounds_file": "results/physics_bounds.json", # Path to physical bounds JSON
+    
+    # Overrides (set to a float to override, or None to use loaded bounds)
+    "eps_c_min": None,
+    "eps_c_max": None,
+    "eps_b_min": None,
+    "eps_b_max": None,
+    
+    # File Paths
+    "csv_path": "datasets/Udacity/self_driving_car_dataset_jungle/driving_log.csv",
+    "img_dir": "datasets/Udacity/self_driving_car_dataset_jungle/IMG/",
+    "weights_path": "models_weights/pilotnet_udacity.pth",
+    "output_results": "results/verification_results.json",
+    
+    # Runtime settings
+    "device": "cuda" if torch.cuda.is_available() else "cpu"  # Use "cuda" for speed, "cpu" if you hit OOM
+}
+# ==============================================================================
+
 def parse_args():
     parser = argparse.ArgumentParser(description="SDP-CROWN Autonomous Driving Steering Verification")
     parser.add_argument(
         "--csv_path",
-        default="datasets/Udacity/self_driving_car_dataset_jungle/driving_log.csv",
+        default=CONFIG["csv_path"],
         help="Path to Udacity driving log CSV"
     )
     parser.add_argument(
         "--img_dir",
-        default="datasets/Udacity/self_driving_car_dataset_jungle/IMG/",
+        default=CONFIG["img_dir"],
         help="Path to driving images directory"
     )
     parser.add_argument(
         "--weights_path",
-        default="models_weights/pilotnet_udacity.pth",
+        default=CONFIG["weights_path"],
         help="Path to pre-trained MicroPilotNet weights"
     )
     parser.add_argument(
         "--weather",
         choices=["fog", "night", "snow", "rain"],
-        default="rain",
+        default=CONFIG["weather"],
         help="Weather condition to verify against"
     )
     parser.add_argument(
         "--bounds_file",
-        default="results/physics_bounds.json",
+        default=CONFIG["bounds_file"],
         help="Path to load characterized physical bounds JSON from"
     )
     parser.add_argument(
-        "--eps_c_min", type=float, default=None,
+        "--eps_c_min", type=float, default=CONFIG["eps_c_min"],
         help="Override minimum contrast drop (epsilon_c). If None, loaded from bounds_file."
     )
     parser.add_argument(
-        "--eps_c_max", type=float, default=None,
+        "--eps_c_max", type=float, default=CONFIG["eps_c_max"],
         help="Override maximum contrast drop (epsilon_c). If None, loaded from bounds_file."
     )
     parser.add_argument(
-        "--eps_b_min", type=float, default=None,
+        "--eps_b_min", type=float, default=CONFIG["eps_b_min"],
         help="Override minimum brightness bias (epsilon_b). If None, loaded from bounds_file."
     )
     parser.add_argument(
-        "--eps_b_max", type=float, default=None,
+        "--eps_b_max", type=float, default=CONFIG["eps_b_max"],
         help="Override maximum brightness bias (epsilon_b). If None, loaded from bounds_file."
     )
     parser.add_argument(
         "--safe_deviation",
         type=float,
-        default=0.1,
+        default=CONFIG["safe_deviation"],
         help="Maximum allowed deviation (radians) from nominal steering path"
     )
     parser.add_argument(
         "--num_frames",
         type=int,
-        default=50,
+        default=CONFIG["num_frames"],
         help="Number of continuous frames to verify"
     )
     parser.add_argument(
         "--output_results",
-        default="results/verification_results.json",
+        default=CONFIG["output_results"],
         help="Path to save the verification results as a JSON file"
     )
     parser.add_argument(
         "--device",
         choices=["cuda", "cpu"],
-        default="cuda" if torch.cuda.is_available() else "cpu",
-        help="Device to run verification on"
+        default=CONFIG["device"],
+        help="Device to run verification on (use cpu if GPU memory is insufficient)"
     )
     return parser.parse_args()
+
 
 def load_bounds(args):
     # Default fallback values (e.g. Rain reference values)
@@ -150,6 +179,7 @@ def verify_regression():
     # Limit number of frames
     num_frames = min(args.num_frames, len(dataset))
     print(f"Verifying {num_frames} frames of sequence...")
+    # NOTE: batch_size=1 is required for the semantic layers + dense matrix bounds tracking
     test_loader = DataLoader(Subset(dataset, range(num_frames)), batch_size=1, shuffle=False)
 
     total_frames = 0
