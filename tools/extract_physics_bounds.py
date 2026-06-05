@@ -12,10 +12,10 @@ import numpy as np
 CONFIG = {
     "condition": "rain",                   # Options: "fog", "night", "snow", "rain"
     "split": "val",                       # Options: "train", "val", "test"
-    "sequence": "all",                    # Folder name (e.g., "GOPR0476") or "all"
+    "sequence": "GOPR0476",               # Specific folder (e.g., "GOPR0476") for stable ODD calibration
     "dataset_dir": "datasets/ACDC",       # Path to ACDC dataset root
     "output_json": "results/physics_bounds.json", # Output JSON path
-    "max_images": None                    # None for all images, or an integer limit
+    "max_images": 50                      # Aggregating too many images causes bound explosion
 }
 # ==============================================================================
 

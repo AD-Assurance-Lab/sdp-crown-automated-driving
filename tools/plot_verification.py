@@ -93,7 +93,8 @@ def main():
 
     # Mark frames color-coded by safety status
     safe_mask = np.array([s == "SAFE" for s in statuses])
-    fail_mask = ~safe_mask
+    fail_mask = np.array([s == "FAILED" for s in statuses])
+    vacuous_mask = np.array([s == "VACUOUS" for s in statuses])
 
     if np.any(safe_mask):
         ax.scatter(
@@ -104,6 +105,12 @@ def main():
         ax.scatter(
             frame_idxs[fail_mask], nominal[fail_mask], 
             color="#c62828", s=60, marker="X", zorder=5, label="Safety Violated (Failed)"
+        )
+    if np.any(vacuous_mask):
+        ax.scatter(
+            frame_idxs[vacuous_mask], nominal[vacuous_mask], 
+            color="#757575", s=60, marker="o", facecolors='none', edgecolors='#757575', 
+            zorder=5, label="Vacuous/Exploded Bounds"
         )
 
     # Labels and Title
