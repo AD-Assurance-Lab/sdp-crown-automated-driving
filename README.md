@@ -91,7 +91,23 @@ Generate a professional graph plotting nominal steering, the safety corridor, CR
 
 ---
 
-## 2. Directory Structure
+## 2. Certified Safety Results (50-Frame Stress Test)
+
+When verified over a 50-frame continuous sequence of the Udacity Lake Track with a safety corridor of $\pm 0.1$ radians ($\approx 5.7^\circ$), the pre-trained `MicroPilotNet` controller yields the following certified safety rates under ACDC-calibrated physical bounds:
+
+| Weather Condition | Parameter Limits | Spatial Masking | Certified Safety (%) |
+| :--- | :--- | :--- | :--- |
+| **Rain (Wet Road)** | $\epsilon_c \in [-0.0279, 0.0]$, $\epsilon_b \in [0.0, 0.1003]$ | Bottom 50% (Road) | **100.0%** |
+| **Snow (Road Wash)** | $\epsilon_c \in [-0.2037, 0.0]$, $\epsilon_b \in [0.0, 0.2297]$ | Bottom 50% (Road) | **84.0%** |
+| **Fog (Global)** | $\epsilon_c \in [-0.1625, 0.0]$, $\epsilon_b \in [0.0, 0.1237]$ | None | **72.0%** |
+| **Night (Global)** | $\epsilon_c \in [-0.6275, 0.0]$, $\epsilon_b \in [0.0, 0.0472]$ | None | **0.0%** |
+
+### VRAM & The Memory Wall
+Because semantic perturbations globally couple all pixels in a convolutional network, the solver must bypass CROWN's sparse `patch-mode` and run in **dense matrix-mode** (`conv_mode: matrix`). Under standard PilotNet inputs, this requires a $39k \times 39k$ matrix, exceeding 12GB VRAM. We resolve this by downsampling the input to $37 \times 117$ pixels (`MicroPilotNet`), dropping VRAM usage to $\approx 600$MB.
+
+---
+
+## 3. Directory Structure
 
 *   `tools/`
     *   `extract_physics_bounds.py`: Stands alone to run ACDC contrast and brightness statistical characterizations.
@@ -103,8 +119,10 @@ Generate a professional graph plotting nominal steering, the safety corridor, CR
 *   `semantic_layers.py`: Implements custom PyTorch weather layers and network wrapper module.
 *   `udacity_dataset.py`: Udacity image loader, crops the top (sky) and bottom (hood) before resizing.
 *   `verify_steering.py`: Runs regression verifier over continuous driving frames.
+*   `ROADMAP.md`: [Roadmap & Feature Checklist](file:///home/za/ad_assurance/sdp-crown-automated-driving/ROADMAP.md) for future verification features (glare, lens blinding, depth-fog).
 
 ---
+
 
 ## 3. Core Baseline Verification (MNIST & CIFAR)
 
